@@ -1,0 +1,33 @@
+[
+    {
+        "name": "pganalyze-${env}-${db_name}",
+        "image": "${image}",
+        "memoryReservation": 128,
+        "environment": [
+            {
+                "name": "DB_URL",
+                "value": "${db_url}"
+            },
+            {
+                "name": "PGA_API_KEY",
+                "value": "${pga_api_key}"
+            },
+            {
+                "name": "AWS_INSTANCE_ID",
+                "value": "${aws_instance_id}"
+            },
+            {
+                "name": "AWS_REGION",
+                "value": "${aws_region}"
+            }
+        ],
+        "logConfiguration": {
+            "logDriver": "awslogs",
+            "options": {
+               "awslogs-group": "${awslogs_group}",
+               "awslogs-region": "${awslogs_region}",
+               "awslogs-stream-prefix": "${awslogs_stream_prefix}"
+            }
+        }
+    }
+]
