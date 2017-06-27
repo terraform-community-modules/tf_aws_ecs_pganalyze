@@ -64,9 +64,9 @@ data "aws_iam_policy_document" "pganalyze" {
 }
 
 resource "aws_iam_role" "pganalyze" {
-  name   = "pganalyze-${var.db_name}-${var.env}"
-  path   = "/tf/pganalyze"
-  policy = "${data.aws_iam_policy_document.pganalyze.json}"
+  name               = "pganalyze-${var.db_name}-${var.env}"
+  path               = "/tf/pganalyze"
+  assume_role_policy = "${data.aws_iam_policy_document.pganalyze.json}"
 }
 
 resource "aws_ecs_task_definition" "pganalyze" {
