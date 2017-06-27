@@ -14,13 +14,16 @@ data "template_file" "pganalyze" {
   template = "${file("${path.module}/files/pganalyze.json")}"
 
   vars {
-    env             = "${var.env}"
-    db_name         = "${var.db_name}"
-    db_url          = "postgres://${var.db_username}:${var.db_password}@${var.rds_endpoint}/${var.db_name}"
-    image           = "${var.docker_image}"
-    pga_api_key     = "${var.pga_api_key}"
-    aws_instance_id = "${var.aws_instance_id}" # we can almost certainly derive this
-    aws_region      = "${data.aws_region.current.name}"
+    env                   = "${var.env}"
+    db_name               = "${var.db_name}"
+    db_url                = "postgres://${var.db_username}:${var.db_password}@${var.rds_endpoint}/${var.db_name}"
+    image                 = "${var.docker_image}"
+    pga_api_key           = "${var.pga_api_key}"
+    aws_instance_id       = "${var.aws_instance_id}" # we can almost certainly derive this
+    aws_region            = "${data.aws_region.current.name}"
+    awslogs_group         = "pganalyze-${var.env}"
+    awslogs_region        = "${data.aws_region.current.name}"
+    awslogs_stream_prefix = "${var.db_name}"
   }
 }
 
