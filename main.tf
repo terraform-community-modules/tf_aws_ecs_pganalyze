@@ -27,51 +27,6 @@ data "template_file" "pganalyze" {
   }
 }
 
-data "aws_iam_policy_document" "pganalyze" {
-  statement {
-    actions = [
-      "rds:Describe*",
-      "rds:ListTagsForResource",
-      "ec2:DescribeAccountAttributes",
-      "ec2:DescribeAvailabilityZones",
-      "ec2:DescribeSecurityGroups",
-      "ec2:DescribeVpcs",
-    ]
-
-    resources = [
-      "*",
-    ]
-  }
-
-  statement {
-    actions = [
-      "cloudwatch:GetMetricStatistics",
-      "logs:DescribeLogStreams",
-      "logs:GetLogEvents",
-    ]
-
-    resources = [
-      "*",
-    ]
-  }
-
-  statement {
-    actions = [
-      "rds:DownloadDBLogFilePortion",
-    ]
-
-    resources = [
-      "*",
-    ]
-  }
-}
-
-resource "aws_iam_role" "pganalyze" {
-  name               = "pganalyze-${var.db_name}-${var.env}"
-  path               = "/tf/pganalyze"
-  assume_role_policy = "${data.aws_iam_policy_document.pganalyze.json}"
-}
-
 resource "aws_ecs_task_definition" "pganalyze" {
   family                = "pganalyze-${var.env}-${var.db_name}"
   container_definitions = "${data.template_file.pganalyze.rendered}"
@@ -79,23 +34,24 @@ resource "aws_ecs_task_definition" "pganalyze" {
   task_role_arn         = "${aws_iam_role.pganalyze_task.arn}"
 }
 
-resource "aws_cloudwatch_log_group" "pganalyze" {
-  name = "${aws_ecs_task_definition.pganalyze.family}"
-
-  tags = {
-    ecs_cluster = "${var.ecs_cluster}"
-    Application = "${aws_ecs_task_definition.pganalyze.family}"
-  }
-}
-
 resource "aws_ecs_service" "pganalyze" {
   name            = "pganalyze-${var.env}-${var.db_name}"
-  cluster         = "${data.aws_ecs_cluster.ecs.arn}"
+  cluster         = "${data.aws_ecs_cluster.ecs.id}"
   task_definition = "${aws_ecs_task_definition.pganalyze.arn}"
   desired_count   = 1
 
   placement_strategy {
     type  = "binpack"
     field = "memory"
+  }
+}
+
+resource "aws_cloudwatch_log_group" "ecs_task" {
+  name = "pganalyze-${var.env}"
+  retention_in_days = 3
+
+  tags = {
+    ecs_cluster = "${var.ecs_cluster}"
+    Application = "${aws_ecs_task_definition.pganalyze.family}"
   }
 }

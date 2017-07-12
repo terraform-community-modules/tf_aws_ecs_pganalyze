@@ -10,6 +10,29 @@ data "aws_iam_policy_document" "pganalyze_task_policy" {
 
     resources = ["*"]
   }
+
+  statement {
+    actions = [
+      "cloudwatch:GetMetricStatistics",
+      "logs:DescribeLogStreams",
+      "logs:GetLogEvents",
+      "logs:PutLogEvents",
+    ]
+
+    resources = [
+      "*",
+    ]
+  }
+
+  statement {
+    actions = [
+      "rds:DownloadDBLogFilePortion",
+    ]
+
+    resources = [
+      "*",
+    ]
+  }
 }
 
 data "aws_iam_policy_document" "assume_role_pganalyze_task" {
