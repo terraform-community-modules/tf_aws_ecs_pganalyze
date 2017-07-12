@@ -14,8 +14,7 @@ data "template_file" "pganalyze" {
   template = "${file("${path.module}/files/pganalyze.json")}"
 
   vars {
-    env                   = "${var.env}"
-    db_name               = "${var.db_name}"
+    task_identifier       = "${var.task_identifier}"
     db_url                = "postgres://${var.db_username}:${var.db_password}@${var.rds_endpoint}/${var.db_name}"
     image                 = "${var.docker_image}"
     pga_api_key           = "${var.pga_api_key}"
@@ -23,19 +22,19 @@ data "template_file" "pganalyze" {
     aws_region            = "${data.aws_region.current.name}"
     awslogs_group         = "pganalyze-${var.env}"
     awslogs_region        = "${data.aws_region.current.name}"
-    awslogs_stream_prefix = "${var.db_name}-${var.env}"
+    awslogs_stream_prefix = "${var.task_identifier}"
   }
 }
 
 resource "aws_ecs_task_definition" "pganalyze" {
-  family                = "pganalyze-${var.env}-${var.db_name}"
+  family                = "pganalyze-${var.env}-${var.task_identifier}"
   container_definitions = "${data.template_file.pganalyze.rendered}"
   network_mode          = "bridge"
   task_role_arn         = "${aws_iam_role.pganalyze_task.arn}"
 }
 
 resource "aws_ecs_service" "pganalyze" {
-  name            = "pganalyze-${var.env}-${var.db_name}"
+  name            = "pganalyze-${var.env}-${var.task_identifier}"
   cluster         = "${data.aws_ecs_cluster.ecs.id}"
   task_definition = "${aws_ecs_task_definition.pganalyze.arn}"
   desired_count   = 1
@@ -49,9 +48,4 @@ resource "aws_ecs_service" "pganalyze" {
 resource "aws_cloudwatch_log_group" "ecs_task" {
   name = "pganalyze-${var.env}"
   retention_in_days = 3
-
-  tags = {
-    ecs_cluster = "${var.ecs_cluster}"
-    Application = "${aws_ecs_task_definition.pganalyze.family}"
-  }
 }

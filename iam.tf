@@ -47,13 +47,13 @@ data "aws_iam_policy_document" "assume_role_pganalyze_task" {
 }
 
 resource "aws_iam_role" "pganalyze_task" {
-  name               = "tf-${data.aws_vpc.vpc.tags["Name"]}-pganalyze-ecsTaskRole"
+  name               = "tf-${data.aws_vpc.vpc.tags["Name"]}-pganalyze-${var.task_identifier}-ecsTaskRole"
   path               = "/"
   assume_role_policy = "${data.aws_iam_policy_document.assume_role_pganalyze_task.json}"
 }
 
 resource "aws_iam_role_policy" "pganalyze_ecs_task" {
-  name   = "tf-${data.aws_vpc.vpc.tags["Name"]}-pganalyze-ecsTaskPolicy"
+  name   = "tf-${data.aws_vpc.vpc.tags["Name"]}-pganalyze-${var.task_identifier}-ecsTaskPolicy"
   role   = "${aws_iam_role.pganalyze_task.id}"
   policy = "${data.aws_iam_policy_document.pganalyze_task_policy.json}"
 }
@@ -61,7 +61,7 @@ resource "aws_iam_role_policy" "pganalyze_ecs_task" {
 # ecsServiceRole for pganalyze
 
 resource "aws_iam_role" "ecsServiceRole" {
-  name = "tf-${data.aws_vpc.vpc.tags["Name"]}-pganalyze-ecsServiceRole"
+  name = "tf-${data.aws_vpc.vpc.tags["Name"]}-pganalyze-${var.task_identifier}-ecsServiceRole"
 
   assume_role_policy = <<EOF
 {

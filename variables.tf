@@ -24,6 +24,10 @@ variable "aws_instance_id" {
   description = "some AWS instance id?"
 }
 
+variable "task_identifier" {
+  description = "Unique identifier for this pganalyze task (used in log prefix, service name etc.)"
+}
+
 variable "db_username" {
   description = "Username of pganalyze monitoring role"
 }

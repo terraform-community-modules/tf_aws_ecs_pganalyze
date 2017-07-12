@@ -1,6 +1,6 @@
 [
     {
-        "name": "pganalyze-${env}-${db_name}",
+        "name": "pganalyze-${task_identifier}",
         "image": "${image}",
         "memoryReservation": 128,
         "environment": [
