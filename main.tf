@@ -23,7 +23,7 @@ data "template_file" "pganalyze" {
     aws_region            = "${data.aws_region.current.name}"
     awslogs_group         = "pganalyze-${var.env}"
     awslogs_region        = "${data.aws_region.current.name}"
-    awslogs_stream_prefix = "${var.db_name}"
+    awslogs_stream_prefix = "${var.db_name}-${var.env}"
   }
 }
 
