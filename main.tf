@@ -20,9 +20,9 @@ data "template_file" "pganalyze" {
     pga_api_key           = "${var.pga_api_key}"
     aws_instance_id       = "${var.aws_instance_id}" # we can almost certainly derive this
     aws_region            = "${data.aws_region.current.name}"
-    awslogs_group         = "pganalyze-${var.env}"
+    awslogs_group         = "${var.log_group}"
     awslogs_region        = "${data.aws_region.current.name}"
-    awslogs_stream_prefix = "${var.task_identifier}"
+    awslogs_stream_prefix = "tf"
   }
 }
 
@@ -43,9 +43,4 @@ resource "aws_ecs_service" "pganalyze" {
     type  = "binpack"
     field = "memory"
   }
-}
-
-resource "aws_cloudwatch_log_group" "ecs_task" {
-  name = "pganalyze-${var.env}"
-  retention_in_days = 3
 }

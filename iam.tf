@@ -61,7 +61,7 @@ resource "aws_iam_role_policy" "pganalyze_ecs_task" {
 # ecsServiceRole for pganalyze
 
 resource "aws_iam_role" "ecsServiceRole" {
-  name = "tf-${data.aws_vpc.vpc.tags["Name"]}-pganalyze-${var.task_identifier}-ecsServiceRole"
+  name = "tf-${data.aws_vpc.vpc.tags["Name"]}-pganalyze-${var.task_identifier}-ecsSvcRole"
 
   assume_role_policy = <<EOF
 {

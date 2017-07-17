@@ -43,3 +43,7 @@ variable "db_name" {
 variable "rds_endpoint" {
   description = "Endpoint of RDS instance to be monitored"
 }
+
+variable "log_group" {
+  description = "CloudWatch Log Group that will receive collector logs (must exist already)"
+}
