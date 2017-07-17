@@ -1,7 +1,3 @@
-variable "vpc_id" {
-  description = "VPC ID"
-}
-
 variable "env" {
   description = "Environment tag (default 'dev')"
   default     = "dev"

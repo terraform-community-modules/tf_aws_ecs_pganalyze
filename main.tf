@@ -1,7 +1,3 @@
-data "aws_vpc" "vpc" {
-  id = "${var.vpc_id}"
-}
-
 data "aws_ecs_cluster" "ecs" {
   cluster_name = "${var.ecs_cluster}"
 }
