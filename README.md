@@ -1,50 +1,43 @@
 tf_aws_ecs_pganalyze
 ===========
 
-Terraform module for deploying and managing [Amazon Elasticsearch Service](https://aws.amazon.com/documentation/ecs_pganalyze-service/).
+Terraform module for deploying and managing [pganalyze collector](https://github.com/pganalyze/collector).
 
-This module creates an Elasticsearch domain and applies an access policy which permits unlimited access based on the intersection of the following two criteria:
+This module assumes that you already have an [ECS](https://aws.amazon.com/ecs/) cluster onto which you will deploy the collector.  Due to limitations in the collector, you must deploy one ECS service per database to be monitored by pganalyze.
 
-* source IP address
-* client IAM role
-
-See [this Stack Overflow post](http://stackoverflow.com/questions/32978026/proper-access-policy-for-amazon-elastic-search-cluster) for further discussion of access policies for Elasticsearch.
-
-Several options affect the resilience and scalability of your Elasticsearch domain.  For a production deployment, set `instance_count` to an even number greater than or equal to 10 (the default is 6), choose an `instance_type` that is not in the T2 family, and set `es_zone_awareness` to `true`.  This will result in a cluster with three dedicated master nodes, balanced across two availability zones.
-
-For a production deployment it may also make sense to use EBS volumes rather that instance storage; to do so, set `ebs_volume_size` greater than 0 and optionally specify a value for `ebs_volume_type` (right now the only supported values are `gp2` and `magnetic`).
+You must also create a [CloudWatch Log Group](https://www.terraform.io/docs/providers/aws/r/cloudwatch_log_group.html) which will collect the log messages from the collector tasks.
 
 ----------------------
 #### Required
-None (but `domain_name` and `management_public_ip_addresses` are strongly recommended).
+- `ecs_cluster` - EC2 Container Service cluster in which the service will be deployed (must already exist, the module will not create it).
+- `pga_api_key` - pganalyze API key (get this by defining the database server in the pganalyze console first).
+- `task_identifier` - Unique identifier for the pganalyze task, used in naming resources.
+- `db_username` - Username of pganalyze monitoring role.
+- `db_password` - Password of pganalyze monitoring role.
+- `db_name` - Name of database to be monitored.
+- `rds_endpoint` - Endpoint of RDS instance to be monitored.
+- `log_group` - CloudWatch log group to which container logs will be sent (must already exist, the module will not create it).
 
 #### Optional
-- `domain_name` - unique identifier for the domain.  The module will prefix it with `tf-`. _e.g._ `domain_name = foo` will result in a domain called `tf-foo`.
-- `es_version` - Elasticsearch version.
-- `instance_type` - Elasticsearch instance type to use for data nodes (and dedicated master nodes unless otherwise specified).
-- `instance_count` - Number of instances in the cluster.
-- `dedicated_master_type` - Elasticsearch instance type to use for dedicated master nodes.
-- `management_iam_roles` - List of ARNs of IAM roles to be granted full access to the domain.
-- `management_public_ip_addresses` - List of IP addresses or CIDR blocks from which to permit full access to the domain.  Remember that for hosts inside a VPC, you'll want to specify the Elastic IP(s) of any relevant NAT Gateway(s).
-- `es_zone_awareness` - Enable or disable zone awareness (balancing instances across multiple availability zones).  Note that setting this parameter to `true` and then requesting an odd number of nodes will result in an invalid cluster configuration.
-- `ebs_volume_size` - Size in GB of EBS volume to attach to each node and use for data storage.  If this parameter is set to 0 (the default), nodes will use instance storage.
-- `ebs_volume_type` - Storage class for EBS volumes.  Just use `gp2`.
-- `snapshot_start_hour` - Hour of the day (in UTC) at which to begin daily snapshots.
+- `env` - environment tag, used in naming resources (default "dev").
+- `docker_image` - Docker image specification containing pganalyze collector (default "quay.io/pganalyze/collector:stable", the upstream recommended value).
+- `aws_instance_id` - passed to Docker container as an environment variable; seems to be ok to leave it blank?
 
 Usage
 -----
 
 ```hcl
 
-module "es" {
-  source                         = "github.com/terraform-community-modules/tf_aws_ecs_pganalyze?ref=0.0.1"
-  domain_name                    = "my-ecs_pganalyze-domain"
-  management_public_ip_addresses = ["34.203.XXX.YYY"]
-  instance_count                 = 16
-  instance_type                  = "m4.2xlarge.ecs_pganalyze"
-  dedicated_master_type          = "m4.large.ecs_pganalyze"
-  es_zone_awareness              = true
-  ebs_volume_size                = 100
+module "pga_testdb" {
+  source          = "github.com/terraform-community-modules/tf_aws_ecs_pganalyze?ref=v1.0.0"
+  env             = "production"
+  pga_api_key     = "ABCDEFGHIJLMNOP"
+  task_identifier = "testdb-production"
+  db_username     = "pganalyze"
+  db_password     = "pganalyze_password"
+  db_name         = "testdb"
+  rds_endpoint    = "testdb.1234abcd.us-east-1.amazonaws.com"
+  log_group       = "pganalyze"
   ...
 }
 
@@ -52,9 +45,7 @@ module "es" {
 
 Outputs
 =======
-- `arn` - ARN of the created Elasticsearch domain.
-- `domain_id` - Unique identifier for the domain.
-- `endpoint` - Domain-specific endpoint used to submit index, search, and data upload requests.  Kibana is available at `https://${endpoint}/_plugin/kibana/`.
+None.
 
 Authors
 =======
@@ -64,9 +55,9 @@ Authors
 Changelog
 =========
 
-0.0.1 - Initial release.
+1.0.0 - Initial release.
 
 License
 =======
 
-This software is released under the MIT License (see `LICENSE.md`).
+This software is released under the MIT License (see `LICENSE`).
