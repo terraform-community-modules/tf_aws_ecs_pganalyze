@@ -1,3 +1,7 @@
+locals {
+  "service_count" = "${length(var.pga_api_key) > 0 ? 1 : 0}"
+}
+
 data "aws_ecs_cluster" "ecs" {
   cluster_name = "${var.ecs_cluster}"
 }
@@ -23,6 +27,7 @@ data "template_file" "pganalyze" {
 }
 
 resource "aws_ecs_task_definition" "pganalyze" {
+  count                 = "${local.service_count}"
   family                = "pganalyze-${var.env}-${var.task_identifier}"
   container_definitions = "${data.template_file.pganalyze.rendered}"
   network_mode          = "bridge"
@@ -30,6 +35,7 @@ resource "aws_ecs_task_definition" "pganalyze" {
 }
 
 resource "aws_ecs_service" "pganalyze" {
+  count           = "${local.service_count}"
   name            = "pganalyze-${var.env}-${var.task_identifier}"
   cluster         = "${data.aws_ecs_cluster.ecs.id}"
   task_definition = "${aws_ecs_task_definition.pganalyze.arn}"

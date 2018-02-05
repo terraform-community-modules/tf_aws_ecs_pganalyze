@@ -47,12 +47,14 @@ data "aws_iam_policy_document" "assume_role_pganalyze_task" {
 }
 
 resource "aws_iam_role" "pganalyze_task" {
+  count              = "${local.service_count}"
   name               = "tf-pganalyze-${var.task_identifier}-ecsTaskRole"
   path               = "/"
   assume_role_policy = "${data.aws_iam_policy_document.assume_role_pganalyze_task.json}"
 }
 
 resource "aws_iam_role_policy" "pganalyze_ecs_task" {
+  count  = "${local.service_count}"
   name   = "tf-pganalyze-${var.task_identifier}-ecsTaskPolicy"
   role   = "${aws_iam_role.pganalyze_task.id}"
   policy = "${data.aws_iam_policy_document.pganalyze_task_policy.json}"
@@ -61,7 +63,8 @@ resource "aws_iam_role_policy" "pganalyze_ecs_task" {
 # ecsServiceRole for pganalyze
 
 resource "aws_iam_role" "ecsServiceRole" {
-  name = "tf-pganalyze-${var.task_identifier}-ecsSvcRole"
+  count = "${local.service_count}"
+  name  = "tf-pganalyze-${var.task_identifier}-ecsSvcRole"
 
   assume_role_policy = <<EOF
 {
@@ -82,6 +85,7 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "attach-ecsServiceRole" {
+  count      = "${local.service_count}"
   role       = "${aws_iam_role.ecsServiceRole.name}"
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole"
 }
